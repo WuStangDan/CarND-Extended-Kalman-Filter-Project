@@ -37,6 +37,9 @@ private:
   // previous timestamp
   long previous_timestamp_;
 
+  // Variance acceleration noise.
+  float noise_a;
+
   // tool object used to compute Jacobian and RMSE
   Tools tools;
   MatrixXd R_laser_;

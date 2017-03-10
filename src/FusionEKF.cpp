@@ -16,7 +16,7 @@ FusionEKF::FusionEKF() {
 
   previous_timestamp_ = 0;
 
-  // initializing matrices
+  // Initializing matrices.
   R_laser_ = MatrixXd(2, 2);
   R_laser_ << 0.0225, 0,
               0, 0.0225;
@@ -47,6 +47,9 @@ FusionEKF::FusionEKF() {
              0, 0, 0, 1;
 
   ekf_.Q_ = MatrixXd(4,4);
+
+  // Variance of acceleration noise. 
+  noise_a = 5;
 
   /**
   TODO:
@@ -103,6 +106,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
+  // Compute dt exponents for process noise matrix.
+  float dt_2 = dt * dt;
+  float dt_3 = dt * dt_2;
+  float dt_4 = dt * dt_3;
+
   /*****************************************************************************
    *  Prediction
    ****************************************************************************/
@@ -112,12 +120,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   ekf_.F_(1,3) = dt;
 
   // Update process covariance matrix.
-  
-
-  /**
-   TODO:
-     * Update the process noise covariance matrix.
-   */
+  ekf_.Q_ << dt_4/4 * noise_a, 0, dt_3/2 * noise_a, 0,
+             0, dt_4/4 * noise_a, 0, dt_3/2 * noise_a,
+             dt_3/3 * noise_a, 0, dt_2 * noise_a, 0,
+             0, dt_3/2 * noise_a, 0, dt_2 * noise_a;
+ 
 
   ekf_.Predict();
 
@@ -132,9 +139,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    // Radar updates
+    // Radar updates.
+    ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+    ekf_.R_ = R_radar_;
+    ekf_.Update(measurement_pack.raw_measurements_);
+    
   } else {
-    // Laser updates
+    // Laser updates.
+    ekf_.H_ = H_laser_;
+    ekf_.R_ = R_laser_;
+    ekf_.Update(measurement_pack.raw_measurements_);
   }
 
   // print the output

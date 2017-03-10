@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include<iostream>
 
 KalmanFilter::KalmanFilter() {}
 
@@ -21,17 +22,22 @@ void KalmanFilter::Predict() {
 
 void KalmanFilter::Update(const VectorXd &z) {
   // Measurement residual.
+  std::cout << "Start y" << std::endl;
   VectorXd y = z - H_ * x_;
   // Residual covariance.
-  VectorXd S = H_ * P_ * H_.transpose() + R_;
+  std::cout << "Start S" << std::endl;
+  MatrixXd S = H_ * P_ * H_.transpose() + R_;
   // Optimal Kalman gain.
+  std::cout << "Start K" << std::endl;
   MatrixXd K = P_ * H_.transpose() * S.inverse();
 
   // Posteriori state estimate.
+  std::cout << "Start x" << std::endl;
   x_ = x_ + K * y;
   // Posteriori covariance estimate.
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  std::cout << "Start P" << std::endl;
   P_ = (I - K * H_) * P_;
 
 }
