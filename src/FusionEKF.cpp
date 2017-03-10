@@ -18,9 +18,35 @@ FusionEKF::FusionEKF() {
 
   // initializing matrices
   R_laser_ = MatrixXd(2, 2);
+  R_laser_ << 0.0225, 0,
+              0, 0.0225;
   R_radar_ = MatrixXd(3, 3);
+  // Not sure why.
+  R_radar_ << 0.0225, 0, 0,
+              0, 0.0225, 0,
+              0, 0, 0.0225;
+
   H_laser_ = MatrixXd(2, 4);
+  H_laser_ << 1, 0, 0, 0,
+              0, 1, 0, 0;
   Hj_ = MatrixXd(3, 4);
+
+  ekf_.x_ = VectorXd(4);
+
+  ekf_.P_ = MatrixXd(4,4);
+  ekf_.P_ << 1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1000, 0,
+             0, 0, 0, 1000;
+
+  ekf_.F_ = MatrixXd(4,4);
+  // Initialize F matrix even though dt will be added later.
+  ekf_.F_ << 1, 0, 1, 0,
+             0, 1, 0, 1,
+             0, 0, 1, 0,
+             0, 0, 0, 1;
+
+  ekf_.Q_ = MatrixXd(4,4);
 
   /**
   TODO:
@@ -46,15 +72,23 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
     cout << "EKF: " << endl;
-    ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
+    //ekf_.x_ = VectorXd(4);
+    //ekf_.x_ << 1, 1, 1, 1;
+
+    // Record time stamp for dt calculation.
+    previous_timestamp_ = measurement_pack.timestamp_;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+      float ro = measurement_pack.raw_measurements_[0];
+      float phi = measurement_pack.raw_measurements_[1];
+      float rodot = measurement_pack.raw_measurements_[2];
+      ekf_.x_ << ro * cos(phi), ro * sin(phi), rodot * cos(phi), rodot * sin(phi);
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
+      ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 0, 0;
       /**
       Initialize state.
       */
@@ -65,14 +99,23 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     return;
   }
 
+  // Compute dt (time elapsed between measurements) in seconds.
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  previous_timestamp_ = measurement_pack.timestamp_;
+
   /*****************************************************************************
    *  Prediction
    ****************************************************************************/
 
+  // Update state transitiom matrix with elapsed time.
+  ekf_.F_(0,2) = dt;
+  ekf_.F_(1,3) = dt;
+
+  // Update process covariance matrix.
+  
+
   /**
    TODO:
-     * Update the state transition matrix F according to the new elapsed time.
-      - Time is measured in seconds.
      * Update the process noise covariance matrix.
    */
 
