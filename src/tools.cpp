@@ -7,8 +7,7 @@ Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
-  std::cout << "Last Ground truth:" << ground_truth[1223] << endl;
-  std::cout << "Last Estimation:" << estimations[1223] << endl;
+  
   VectorXd rmse(4);
   rmse << 0, 0, 0, 0;
 
@@ -32,10 +31,6 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   rmse = rmse.array().sqrt();
 
   return rmse;
-  /**
-  TODO:
-    * Calculate the RMSE here.
-  */
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
@@ -52,6 +47,11 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   float xy32 = xysq * xysqrt;
 
   MatrixXd Hj(3,4);
+
+  if(fabs(xysq) < 0.0001){
+    cout << "CalculateJacobian () - Error - Division by Zero" << endl;
+    return Hj;
+  }
 
   Hj << px/xysqrt, py/xysqrt, 0, 0,
         -py/xysq, px/xysq, 0, 0,

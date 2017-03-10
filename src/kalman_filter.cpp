@@ -22,27 +22,35 @@ void KalmanFilter::Predict() {
 
 void KalmanFilter::Update(const VectorXd &z) {
   // Measurement residual.
-  std::cout << "Start y" << std::endl;
   VectorXd y = z - H_ * x_;
   // Residual covariance.
-  std::cout << "Start S" << std::endl;
   MatrixXd S = H_ * P_ * H_.transpose() + R_;
   // Optimal Kalman gain.
-  std::cout << "Start K" << std::endl;
   MatrixXd K = P_ * H_.transpose() * S.inverse();
 
   // Posteriori state estimate.
-  std::cout << "Start x" << std::endl;
   x_ = x_ + K * y;
   // Posteriori covariance estimate.
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  std::cout << "Start P" << std::endl;
   P_ = (I - K * H_) * P_;
 
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
+  // Measurement residual.
+  VectorXd y = z - H_ * x_;
+  // Residual covariance.
+  MatrixXd S = H_ * P_ * H_.transpose() + R_;
+  // Optimal Kalman gain.
+  MatrixXd K = P_ * H_.transpose() * S.inverse();
+
+  // Posteriori state estimate.
+  x_ = x_ + K*y;
+  // Posteriori covariance estimate.
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
   /**
   TODO:
     * update the state by using Extended Kalman Filter equations

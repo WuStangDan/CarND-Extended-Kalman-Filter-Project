@@ -18,13 +18,23 @@ FusionEKF::FusionEKF() {
 
   // Initializing matrices.
   R_laser_ = MatrixXd(2, 2);
-  R_laser_ << 0.0225, 0,
-              0, 0.0225;
+/* Old RMSE tuning.
+  R_laser_ << 0.0005, 0,
+              0, 0.0005;
   R_radar_ = MatrixXd(3, 3);
   // Not sure why.
-  R_radar_ << 0.0225, 0, 0,
-              0, 0.0225, 0,
-              0, 0, 0.0225;
+  R_radar_ << 0.02, 0, 0,
+              0, 1, 0,
+              0, 0, 0.0005;
+*/
+  // New visual tuning.
+  R_laser_ << 0.0005, 0,
+              0, 0.0005;
+  R_radar_ = MatrixXd(3, 3);
+  // Not sure why.
+  R_radar_ << 0.05, 0, 0,
+              0, 1, 0,
+              0, 0, 0.005;
 
   H_laser_ = MatrixXd(2, 4);
   H_laser_ << 1, 0, 0, 0,
@@ -36,8 +46,8 @@ FusionEKF::FusionEKF() {
   ekf_.P_ = MatrixXd(4,4);
   ekf_.P_ << 1, 0, 0, 0,
              0, 1, 0, 0,
-             0, 0, 1000, 0,
-             0, 0, 0, 1000;
+             0, 0, 100, 0,
+             0, 0, 0, 100;
 
   ekf_.F_ = MatrixXd(4,4);
   // Initialize F matrix even though dt will be added later.
@@ -132,17 +142,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    *  Update
    ****************************************************************************/
 
-  /**
-   TODO:
-     * Use the sensor type to perform the update step.
-     * Update the state and covariance matrices.
-   */
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates.
     ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.R_ = R_radar_;
-    ekf_.Update(measurement_pack.raw_measurements_);
+    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
     
   } else {
     // Laser updates.
