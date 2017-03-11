@@ -18,23 +18,12 @@ FusionEKF::FusionEKF() {
 
   // Initializing matrices.
   R_laser_ = MatrixXd(2, 2);
-/* Old RMSE tuning.
-  R_laser_ << 0.0005, 0,
-              0, 0.0005;
+  R_laser_ << 0.01, 0,
+              0, 0.01;
   R_radar_ = MatrixXd(3, 3);
-  // Not sure why.
-  R_radar_ << 0.02, 0, 0,
-              0, 1, 0,
-              0, 0, 0.0005;
-*/
-  // New visual tuning.
-  R_laser_ << 0.0005, 0,
-              0, 0.0005;
-  R_radar_ = MatrixXd(3, 3);
-  // Not sure why.
-  R_radar_ << 0.05, 0, 0,
-              0, 1, 0,
-              0, 0, 0.005;
+  R_radar_ << 0.045, 0, 0,
+              0, 0.045, 0,
+              0, 0, 0.045;
 
   H_laser_ = MatrixXd(2, 4);
   H_laser_ << 1, 0, 0, 0,
@@ -46,8 +35,8 @@ FusionEKF::FusionEKF() {
   ekf_.P_ = MatrixXd(4,4);
   ekf_.P_ << 1, 0, 0, 0,
              0, 1, 0, 0,
-             0, 0, 100, 0,
-             0, 0, 0, 100;
+             0, 0, 1000, 0,
+             0, 0, 0, 1000;
 
   ekf_.F_ = MatrixXd(4,4);
   // Initialize F matrix even though dt will be added later.
@@ -59,7 +48,7 @@ FusionEKF::FusionEKF() {
   ekf_.Q_ = MatrixXd(4,4);
 
   // Variance of acceleration noise. 
-  noise_a = 5;
+  noise_a = 4;
 
   /**
   TODO:
